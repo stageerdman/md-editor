@@ -11,9 +11,14 @@ enum BlockParser {
         var inFence = false
         var fenceLanguage: String?
 
-        while location <= ns.length {
+        // Strictly `<`, not `<=`: at location == ns.length with no trailing
+        // newline, `lineRange(for:)` returns the *same* range as the last
+        // real line instead of an empty one, so `<=` never advances and
+        // spins forever — this fired on the very first keystroke, since a
+        // fresh one-line document has no trailing newline.
+        while location < ns.length {
             let lineRange = ns.lineRange(for: NSRange(location: location, length: 0))
-            if lineRange.length == 0 { break }
+            if lineRange.length == 0 || NSMaxRange(lineRange) <= location { break }
 
             var contentRange = lineRange
             let lineString = ns.substring(with: lineRange)
